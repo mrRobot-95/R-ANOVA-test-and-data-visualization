@@ -1,0 +1,119 @@
+---
+title: "R_Anova"
+output:
+  html_document:
+    df_print: paged
+date: "2022-08-11"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+#load the data
+setwd("E:/R")
+df <- read.csv("newbook1.csv" , header = TRUE)
+head(df)
+
+```
+
+```{r}
+# anova test
+res.aov <- aov(Weight ~ Treatment, data = df)
+summary(res.aov)
+
+# We can conclude that there are significant differences between the groups highlighted with “*” in the model summary because the p-value is less than the significance level of 0.05.
+```
+```{r}
+TukeyHSD(res.aov)
+
+# lwr, upr: the lower and upper-end points of the confidence interval at 95 percent (default) p adj: p-value after multiple comparisons adjustment.
+
+# The difference between CYCLING-OVX and SHAM-OVX significant, as shown by the output, with an adjusted p-value lower than 0.05.
+```
+```{r}
+aov_residuals <- residuals(object = res.aov )
+shapiro.test(x = aov_residuals )
+
+# The Shapiro-Wilk test on the ANOVA residuals  p is equal to 1.907e-15, which finds no evidence of normality violation
+```
+```{r}
+df2 <- read.csv("newbook2.csv" , header = TRUE)
+head(df2)
+```
+
+```{r}
+res.aov_OVX <- aov(R_weight ~ Groups, data = subset(df2, Treatment == "OVX"))
+summary(res.aov_OVX)
+```
+```{r}
+"As the p-value is less than the significance level 0.05, we can conclude that there are significant differences between the groups highlighted with * in the model summary."
+```
+
+
+```{r}
+TukeyHSD(res.aov_OVX)
+```
+```{r}
+"It can be seen from the output, that difference between Met and Die,Est - Die , Pro - Est and Pro - Met are significant with an adjusted p-value lower than 0.05."
+```
+
+```{r}
+res.aov_CYC <- aov(R_weight ~ Groups, data = subset(df2, Treatment == "CYCLING"))
+summary(res.aov_CYC)
+```
+```{r}
+"As the p-value is less than the significance level 0.05, we can conclude that there are significant differences between the groups highlighted with * in the model summary."
+```
+
+```{r}
+TukeyHSD(res.aov_CYC)
+```
+
+```{r}
+"It can be seen from the output, that only difference between Met and Die is not significant with an adjusted p-value greater than 0.05. Therfore all other are have significant difference"
+```
+
+```{r}
+res.aov_SHAM <- aov(R_weight ~ Groups, data = subset(df2, Treatment == "SHAM"))
+summary(res.aov_SHAM)
+```
+```{r}
+"As the p-value is less than the significance level 0.05, we can conclude that there are significant differences between the groups highlighted with * in the model summary."
+```
+
+```{r}
+TukeyHSD(res.aov_SHAM)
+```
+
+```{r}
+"It can be seen from the output, that only difference between Met and Die is not significant with an adjusted p-value greater than 0.05. Therfore all other are have significant difference"
+```
+
+```{r}
+df3 <- read.csv("newbook3.csv" , header = TRUE)
+head(df3)
+```
+```{r}
+res.aov <- aov(Weight ~ Phase, df3)
+summary(res.aov)
+```
+
+```{r}
+"As the p-value is greater than the significance level 0.05, we can conclude that there are not significant differences between the groups."
+```
+
+```{r}
+TukeyHSD(res.aov)
+```
+
+```{r}
+"It can be seen from the output, there is no groups is significant with an adjusted p-value lower than 0.05."
+```
+
+
+```{r}
+sessionInfo()
+```
+

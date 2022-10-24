@@ -1,0 +1,213 @@
+---
+title: "R"
+output:
+  html_document: default
+  pdf_document: default
+date: "2022-08-11"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+# For the create first figure, Original values in weights copied  into new csv file and each weight and week value was transposed and all data points were insert into one column then new column was created for the treatment label and each label was define.
+
+# Same thing had done for the second figure csv file and this time another new column created for the phase label
+
+
+
+```
+
+
+```{r}
+#install.packages('tidyverse')
+#install.packages('ggplot2')
+#install.packages('patchwork')
+
+library(tidyverse) #for data manipulation
+library(ggplot2) # for the plot design
+library(patchwork) # for make multiple plots in one pane
+```
+```{r}
+#load the data
+setwd("E:/R")
+df <- read.csv("newbook1.csv" , header = TRUE)
+head(df)
+
+
+
+```
+
+
+```{r}
+#Calculate stranded error
+my_se <- df %>%
+  group_by(Treatment,week) %>%
+  summarise(n=n(),
+            sd=sd(Weight),
+            se=sd/sqrt(n))
+
+my_se
+```
+
+
+```{r}
+newdf1=aggregate(df[, 2], list(df$week,df$Treatment), mean)
+head(newdf1)
+my_se$Weight = newdf1$x
+head(my_se)
+#Define custom colors for groups.Plot colors can be change with this 
+my_colors <- c("blue", "magenta", "cyan")
+
+#make custom order for axis label
+my_se$Treatment <- factor(my_se$Treatment, levels = c("OVX","CYCLING","SHAM"))
+
+
+
+
+#data plotting
+
+  ggplot(my_se,aes(x=week, y=Weight, group=Treatment, color=Treatment , shape=Treatment)) + 
+  geom_line() +
+  geom_point()+
+  scale_color_manual(values = my_colors)+
+  geom_errorbar(aes(x=week, ymin=Weight-se, ymax=Weight+se), width=0.4, position ="identity") +
+  labs(x="Age (weeks)", y="Weight (g)") +
+  scale_x_continuous( breaks=seq(9,21,1))+ # a X axis mark is shown on every 1
+  ggtitle("Weekly Weight")
+```
+
+
+```{r}
+ggsave("figure1.png", width = 8, height = 8)
+```
+
+```{r}
+
+df2 <- read.csv("newbook2.csv" , header = TRUE)
+head(df2)
+```
+
+
+```{r}
+#Calculate stranded error
+my_se2 <- df2 %>%
+  group_by(Treatment,Groups) %>%
+  summarise(n=n(),
+            sd=sd(R_weight),
+            se=sd/sqrt(n))
+
+my_se2
+```
+```{r}
+newdf2=aggregate(df2[, 1], list(df2$Groups,df2$Treatment), mean)
+newdf2
+
+my_se2$R_weight = newdf2$x
+my_se2
+```
+
+
+```{r}
+#make custom order for axis label
+my_se2$Groups <- factor(my_se2$Groups, levels = c("Die", "Pro", "Est", "Met"))
+```
+
+
+```{r}
+
+p1 = ggplot((my_se2 %>%
+  filter(Treatment == "OVX")),aes(x=Groups, y=R_weight, group=Treatment)) + 
+  geom_line() +
+  geom_point(color='yellow')+
+  geom_errorbar(aes(x=Groups, ymin=R_weight-se, ymax=R_weight+se), width=0.4, position = position_dodge(.9)) +
+  scale_x_discrete(breaks=c("Die","Pro","Est", "Met"),
+        labels=c("Day 1", "Day 2" ,"day 3" , "Day 4"))+
+  labs( x= "phase" , y="% Weight (g) relative to Die ") +
+  ggtitle("OVX")+
+  theme(legend.position="none")
+
+
+p2 = ggplot((my_se2 %>%
+  mutate(Groups = factor(Groups)) %>% 
+  filter(Treatment == "CYCLING")),aes(x=Groups, y=R_weight, group=Treatment )) + 
+  geom_line() +
+  geom_point(color='darkblue')+  # use this to change color in data points
+  geom_errorbar(aes(x=Groups, ymin=R_weight-se, ymax=R_weight+se), width=0.4, position = position_dodge(.9)) +
+  labs( x= "phase" , y="% Weight (g) relative to Die ") +
+  ggtitle("Cycling")+
+  theme(legend.position="none")
+
+
+
+p3 = ggplot((my_se2 %>%
+  mutate(Groups = factor(Groups)) %>% 
+  filter(Treatment == "SHAM")),aes(x=Groups, y=R_weight, group=Treatment )) + 
+  geom_line() +
+  geom_point(color='red')+
+  geom_errorbar(aes(x=Groups, ymin=R_weight-se, ymax=R_weight+se), width=0.4, position = position_dodge(.9)) +
+  labs( x= "phase" , y="% Weight (g) relative to Die ") +
+  ggtitle("SHAM")+
+  theme(legend.position="none")
+
+plot <- p1|p2/p3
+plot + plot_annotation(
+  title = 'Wight accross EC - all animals' )
+```
+
+
+```{r}
+ggsave("figure2.png", width = 10, height = 5)
+```
+
+```{r}
+df3 <- read.csv("newbook3.csv" , header = TRUE)
+head(df3)
+```
+
+
+```{r}
+#Calculate stranded error
+my_se3 <- df3 %>%
+  group_by(Phase) %>%
+  summarise(n=n(),
+            sd=sd(Weight),
+            se=sd/sqrt(n))
+
+my_se3
+
+W_average=aggregate(df3$Weight, list(df3$Phase), FUN=mean)
+W_average
+
+my_se3$Weight=W_average$x
+my_se3
+
+my_se3$Phase <- factor(my_se3$Phase, levels = c("D1", "P1","E1","M1","D2","P2","E2","M2","D3","P3","E3","M3"))
+
+my_se3[order(my_se3$Phase),]
+
+```
+
+```{r}
+#data plotting
+ggplot(my_se3,(aes(x=Phase, y=Weight , group = 1 ))) + 
+  geom_line() +
+  geom_point()+
+  geom_errorbar(aes(x=Phase, ymin=Weight-se, ymax=Weight+se), width=0.4, position = position_dodge(.9)) +
+  labs( x= "phase" , y="% Weight (g) relative to Die ") +
+  ggtitle("Weights across EC - 3 cycles")+
+  theme(legend.position="none")
+```
+
+
+```{r}
+ggsave("figure3.png", width = 8, height = 8)
+```
+```{r}
+sessionInfo()
+```
+
+
+
+
